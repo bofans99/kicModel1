@@ -11,34 +11,46 @@
 </head>
 <body>
 <%
-
+String boardid ="";
 int pageInt = 1;
-int limit = 3;
+int limit = 10;
 
-try{
-	pageInt = Integer.parseInt(request.getParameter("pageNum"));
-}catch(Exception e){
-	pageInt=1;
+
+//boardid
+if(request.getParameter("boardid")!=null){
+	session.setAttribute("boardid",request.getParameter("boardid"));
+	session.setAttribute("pageNum","1");
 }
+boardid = (String) session.getAttribute("boardid");
+if(boardid==null){ boardid="1";}
 
-String boardid ="1";
+//페이지 유지>pageNum이 파라미터로 넘어왔을때만 세션에 저장
+if(request.getParameter("pageNum")!=null){
+	session.setAttribute("pageNum",request.getParameter("pageNum"));
+}
+String pageNum = (String) session.getAttribute("pageNum");
+if(pageNum==null){ pageNum="1";}
+pageInt=Integer.parseInt(pageNum);
+
+
+
 BoardDao bd= new BoardDao();
 int boardcount = bd.boardCount(boardid);
-
-
-
 
 List<Board> list = bd.boardList(pageInt, limit, boardcount, boardid);
 
 int boardnum = boardcount - (pageInt-1) *limit;
-
 int bottomLine = 3;
 int startPage = (pageInt -1)/bottomLine*bottomLine +1;
 int endPage = startPage + bottomLine -1;
 int maxPage = (boardcount/limit) + (boardcount % limit ==0? 0:1);
 if (endPage>maxPage) endPage=maxPage;
 
-
+String boardName="공지사항";
+switch(boardid){
+case "3" : boardName="QNA"; break;
+case "2" : boardName="자유게시판"; break;
+}
 %>
 
 
@@ -48,7 +60,7 @@ if (endPage>maxPage) endPage=maxPage;
 <hr>
 	<!-- table list start -->
 	<div class="container">
-		<h2  id="center">게시판 리스트<%=pageInt %></h2>
+		<h2  id="center"><%=boardName%>[<%=pageInt %>]-[<%=boardid %>]</h2>
 		<p align="right">
 		<% if (boardcount > 0){ %> 글개수 <%=boardcount%> <% } else { %> 
 		등록된 게시물이 없습니다. 
@@ -73,7 +85,14 @@ if (endPage>maxPage) endPage=maxPage;
 			%>
 				<tr>
 					<td><%=(boardnum--)%></td>
-					<td><a href="boardInfo.jsp?num<%=b.getNum()%> "><%=b.getSubject() %></a></td>
+					<td>
+					<% if(b.getReflevel1()>0){ 
+					//답글
+					%>
+					<img src="<%=request.getContextPath()%>/image/level.gif" width="<%=5*b.getReflevel1()%>">
+					<img src="<%=request.getContextPath()%>/image/re.gif"">
+					<% }%>
+					<a href="boardInfo.jsp?num=<%=b.getNum()%>"><%=b.getSubject() %></a></td>
 					<td><%=b.getWriter() %></td>
 					<td><%=b.getRegdate() %></td>
 					<td><%=b.getFile1() %></td>

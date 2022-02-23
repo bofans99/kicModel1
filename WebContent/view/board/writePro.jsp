@@ -19,12 +19,21 @@ board.setWriter(multi.getParameter("writer"));
 board.setPass (multi.getParameter("pass")); 
 board.setSubject(multi.getParameter("subject")); 
 board.setContent(multi.getParameter("content")); 
-board.setFile1(multi.getParameter("file1"));
+board.setFile1(multi.getFilesystemName("file1"));
 
 board.setIp(request.getLocalAddr()); 
-board.setBoardid("1");
+
+//boardid setting
+String boardid = (String) session.getAttribute("boardid");
+if(boardid==null) boardid = "1";
+board.setBoardid(boardid);
 
 BoardDao bd = new BoardDao();
+
+//새글인 경우
+board.setNum(bd.nextNum());//db에서 다음번호읽음
+board.setRef(board.getNum());
+
 int num = bd.insertBoard(board);
 
 String msg = "게시물 등록 실패";
@@ -32,7 +41,8 @@ String url = "writeForm.jsp";
 
 if(num==1){
 	msg="게시물 등록 성공";
-	url="list.jsp";
+	//pageNum줘서 1페이지로
+	url="list.jsp?pageNum=1";
 }
 
 %>
